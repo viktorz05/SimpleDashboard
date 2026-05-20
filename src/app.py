@@ -24,6 +24,10 @@ class Dashboard(tk.Tk):
 
     def build_ui(self):
         # left = tk.Frame(self, bg="orange")
+        self.panels = [
+            "ComingTasks" : ComingTasksPanel,
+
+        ]
         pass
 
 
