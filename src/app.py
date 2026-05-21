@@ -1,4 +1,5 @@
 import tkinter as tk
+import math
 from tkinter import ttk
 from tkinter import messagebox
 
@@ -8,6 +9,7 @@ from panels import AddTaskPanel, EvaluateStressPanel, OverlayPanel
 from widgets import RecommendationsWidget, ComingTasksWidget
 
 MAX_STRESS_LEVEL = 21
+
 
 class Dashboard(tk.Tk):
     def __init__(self):
@@ -31,12 +33,12 @@ class Dashboard(tk.Tk):
 
         # Ring
         center = tk.Frame(self, bg="#1a1a1a")
-        center.grid(row=0, column=1, sticky="nsew")
+        center.grid(row=0, column=1, sticky="nsew", padx=10, pady=10)
         center.rowconfigure(0, weight=1)
         center.columnconfigure(0, weight=1)
 
         self.ring_canvas = tk.Canvas(center, bg="#111")
-        self.ring_canvas.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
+        self.ring_canvas.grid(row=0, column=0, sticky="nsew")
         self.ring_canvas.bind("<Configure>", lambda e: self.update_ring())
         # Evaluate Stress Button
         tk.Button(center, text="Evaluar Estrés", bg="#e8001c", fg="white", command= self.open_questionnaire).grid(row=1, column=0, pady=10)
@@ -89,19 +91,47 @@ class Dashboard(tk.Tk):
             draw_ring(canvas, cx, cy, r, self.stress_level)
 
 
+class CircularProgressBar(tk.Canvas):
+    def __init__(self, parent, x0, y0, x1, y1, width=2, start_ang=90, full_extent=360):
+        super().__init__(parent, width=x1-x0, height=y1-y0, bg="#111", highlightthickness=0)
+        self.x0, self.y0, self.x1, self.y1 = x0+width, y0+width, x1-width, y1-width
+        self.tx, self.ty = (x1-x0) // 2, (y1-y0) // 2
+        self.width = width
+        self.start_ang = start_ang
+        self.full_extent = full_extent
+        w2 = width // 2
+        self.oval1 = self.create_oval(self.x0-w2, self.y0-w2,
+                                      self.x1+w2, self.y1+w2)
+        self.oval2 = self.create_oval(self.x0+w2, self.y0+w2,
+                                      self.x1-w2, self.y1-w2)
+        self.running = False
+    
+    def start(self, interval=100):
+        pass
 
-
-
-def draw_ring(canvas, x, y, radius, stress_level):
+def draw_ring(canvas, x, y, radius, stress_level, thickness=32):
     # Define colors based on stress level
-    if stress_level == QMetric.BAJO:
-        color = "green"
-    elif stress_level == QMetric.MEDIO:
-        color = "yellow"
-    else:
-        color = "red"
-    canvas.create_oval(x - radius, y - radius, x + radius, y + radius, outline=color)
-
+    # if stress_level == QMetric.BAJO:
+    #     color = "green"
+    # elif stress_level == QMetric.MEDIO:
+    #     color = "yellow"
+    # else:
+    #     color = "red"
+    # canvas.create_oval(x - radius, y - radius, x + radius, y + radius, outline=color)
+    stress_pts = stress_level.value / MAX_STRESS_LEVEL
+    extent = min(stress_pts * 360, 359.9)
+    x0, y0, x1, y1 = x - radius, y - radius, x + radius, y + radius
+    t = thickness
+    canvas.create_oval(x0-t//2, y0-t//2, x1+t//2, y1+t//2, fill="#1a0000", outline="")
+    canvas.create_oval(x0+t//2, y0+t//2, x1-t//2, y1-t//2, fill="#111111", outline="")
+    if extent > 0:
+        canvas.create_arc(x0, y0, x1, y1, start=90, extent=-extent, fill="#e8001c", outline="", width = t)
+    angle_rad = math.radians(90 - extent)
+    dx = x + radius * math.cos(angle_rad)
+    dy = y + radius * math.sin(angle_rad)
+    r = t / 2
+    canvas.create_oval(dx - r, dy - r, dx + r, dy + r, fill="#e8001c", outline="")
+    canvas.create_text(x, y - 20, text=f"{stress_level.name}", fill="white", font=("Arial", 16, "bold"))
 
 
 

@@ -32,9 +32,9 @@ class AddTaskPanel(OverlayPanel):
             tk.Label(container, text=label, bg="#1a1a1a", fg="white").pack(side=tk.LEFT, padx=10)
             entry = tk.Entry(container)
             entry.insert(0, placeholder)
-            entry.bind("<FocusIn>", lambda e, ph=placeholder: self.clear_placeholder(e, ph))
-            entry.bind("<FocusOut>", lambda e, ph=placeholder: self.add_placeholder(e, ph))
-            entry.pack(side=tk.RIGHT, padx=10)
+            entry.bind("<FocusIn>", lambda e, en = entry, ph=placeholder: (en.delete(0, tk.END), en.config(fg="white") if en.get() == ph else None))
+            entry.bind("<FocusOut>", lambda e, en = entry, ph=placeholder: (en.insert(0, ph), en.config(fg="gray") if en.get() == "" else None))
+            entry.pack(fill=tk.X, ipadx=6, padx=2)
             self.answers[label] = (entry, placeholder)
         tk.Button(self, text="Agregar Tarea", bg="#e8001c", fg="white", command=self._add).pack(fill=tk.X, padx=12, pady=12)
 
