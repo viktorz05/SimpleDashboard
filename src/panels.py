@@ -3,6 +3,8 @@ from tkinter import ttk
 from tkinter import messagebox
 from stress import get_stress_level 
 from task import Task, Calendar
+from stress import QMetric
+from datetime import datetime
 
 class OverlayPanel(tk.Frame):
     def __init__(self, parent, title, on_close):
@@ -20,33 +22,88 @@ class AddTaskPanel(OverlayPanel):
         self.on_add = on_add
         container = tk.Frame(self, bg="#1a1a1a")
         container.pack(fill=tk.BOTH, expand=True)
-        fields = [
-                ("Nombre", "e.g. Estudiar para el examen"),
-                ("Fecha", "YYYY-MM-DD"),
-                ("Prioridad", "Bajo, Medio, Alto"),
-                ("Dificultad", "Bajo, Medio, Alto"),
-                ("Tiempo Estimado (hrs)", "e.g. 2")
-                ]
-        self.answers = {}
-        for label, placeholder in fields:
-            tk.Label(container, text=label, bg="#1a1a1a", fg="white").pack(side=tk.LEFT, padx=10)
-            entry = tk.Entry(container)
-            entry.insert(0, placeholder)
-            entry.bind("<FocusIn>", lambda e, en = entry, ph=placeholder: (en.delete(0, tk.END), en.config(fg="white") if en.get() == ph else None))
-            entry.bind("<FocusOut>", lambda e, en = entry, ph=placeholder: (en.insert(0, ph), en.config(fg="gray") if en.get() == "" else None))
-            entry.pack(fill=tk.X, ipadx=6, padx=2)
-            self.answers[label] = (entry, placeholder)
-        tk.Button(self, text="Agregar Tarea", bg="#e8001c", fg="white", command=self._add).pack(fill=tk.X, padx=12, pady=12)
+
+        #Text
+        tk.Label(container, text="Nombre", font=("Helvetica", 9, "bold"), bg="#1a1a1a", fg="#aaa"
+                 ).pack(anchor=tk.W, pady=(10,12))
+        self.name_entry = self.make_entry(container, "Submit")
+
+        tk.Label(container, text="Fecha", font=("Helvetica", 9, "bold"), bg="#1a1a1a", fg="#aaa"
+                 ).pack(anchor=tk.W, pady=(10,12))
+        self.date_entry = self.make_entry(container, "YYYY-MM-DD")
+
+        tk.Label(container, text="Tiempo estimado", font=("Helvetica", 9, "bold"), bg="#1a1a1a", fg="#aaa"
+                 ).pack(anchor=tk.W, pady=(10,12))
+        self.time_entry = self.make_entry(container, "e.g. 1.5")
+
+        metric_options = [m.name for m in QMetric]
+        tk.Label(container, text="Prioridad", font=("Helvetica", 9, "bold"), bg="#1a1a1a", fg="#aaa"
+                 ).pack(anchor=tk.W, pady=(10,12))
+        self.priority_var = tk.StringVar(value=metric_options[0])
+        self.make_dropdown(container, self.priority_var, metric_options)
+
+        tk.Label(container, text="Dificultad", font=("Helvetica", 9, "bold"), bg="#1a1a1a", fg="#aaa"
+                 ).pack(anchor=tk.W, pady=(10,12))
+        self.difficulty_var = tk.StringVar(value=metric_options[0])
+        self.make_dropdown(container, self.difficulty_var, metric_options)
+
+        tk.Button(container, text="Anadir tarea", font=("Helvetica", 10, "bold"), bg="#e8001c", fg="white",
+                  activeforeground="white", relief=tk.FLAT, cursor="hand2", pady=6, command=self._add).pack(fill=tk.X, padx=12, pady=12)
+        
+    
+    def make_entry(self, parent, placeholder):
+        entry = tk.Entry(parent, font=("Helvetica", 10), bg="#222", fg="#555" ,insertbackground="white", relief='flat')
+        entry.insert(0, placeholder)
+        entry.bind("<FocusIn>", lambda e, en=entry, ph=placeholder : 
+                   (en.delete(0, tk.END), en.config(fg="white"))
+                   if en.get() == ph else None)
+        entry.bind("<FocusOut>", lambda e, en=entry, ph=placeholder : 
+                   (en.delete(0, ph), en.config(fg="#555"))
+                   if en.get() == "" else None)
+        entry.pack(fill=tk.X, ipady=6, padx=6)
+        return entry
+
+
+
+    def make_dropdown(self, parent, variable, options):
+        om = tk.OptionMenu(parent, variable, *options)
+        om.config(
+            font=("Helvetica", 9, "bold"), bg ="#222", fg="white", activebackground="#e8001c", relief=tk.FLAT,
+            highlightthickness=0
+        
+        )
+        om["menu"].config(bg="#222", fg="white", font=("Helvetica", 9))
+        om.pack(fill=tk.X, padx=2)
+
+        
 
     def _add(self):
-        data = {}
-        for label, (entry, placeholder) in self.answers:
-            value = entry.get()
-            data[label] = "" if value == placeholder else value
-        if not data["Nombre"] or not data["Fecha"]:
-            messagebox.showwarning("Error", "Nombre y Fecha son obligatorios.")
+        name = self.name_entry.get()
+        date = self.date_entry.get()
+        time_str = self.time_entry.get()
+
+        if not name:
+            messagebox.showwarning("Campo obligatorio. Por favor escribe el nombre")
             return
-        self.on_add(data)
+        try:
+            datetime.strptime(date, "%Y-%m-%d")
+        except ValueError:
+            messagebox.showerror("Formato incorrecto", "La fecha debe ser YYYY-MM-DD")
+            return
+        try:
+            est_time = float(time_str)
+        except ValueError:
+            messagebox.showwarning("Formato de tiempo incorrecto", "El tiempo estimado debe ser un numero")
+            return
+
+        task = Task(
+            name = name,
+            date = date,
+            priority = QMetric[self.priority_var.get()],
+            difficulty = QMetric[self.difficulty_var.get()],
+            est_time = est_time
+        )
+        self.on_add(task)
 
 class EvaluateStressPanel(OverlayPanel):
     QUESTIONS = [

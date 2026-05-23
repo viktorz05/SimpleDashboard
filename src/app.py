@@ -16,10 +16,11 @@ class Dashboard(tk.Tk):
         # Main setup
         super().__init__()
         self.title("MindCode")
-        self.geometry("800x600")
-        self.minsize(600,600)
+        self.geometry("900x560")
+        self.minsize(750,480)
+        self.configure(bg="#111")
         self.calendar = Calendar() 
-        self.stress_level = 0
+        self.stress_level = 14
         self.build_ui()
 
 
@@ -110,27 +111,30 @@ class CircularProgressBar(tk.Canvas):
         pass
 
 def draw_ring(canvas, x, y, radius, stress_level, thickness=32):
-    # Define colors based on stress level
-    # if stress_level == QMetric.BAJO:
-    #     color = "green"
-    # elif stress_level == QMetric.MEDIO:
-    #     color = "yellow"
-    # else:
-    #     color = "red"
-    # canvas.create_oval(x - radius, y - radius, x + radius, y + radius, outline=color)
     stress_pts = stress_level.value / MAX_STRESS_LEVEL
+    color = "#000000"
+    match stress_level:
+        case QMetric.BAJO:
+            color = "#00ff00"
+        case QMetric.MEDIO:
+            color = "#ffff00"
+        case QMetric.ALTO:
+            color = "#ff0000"
     extent = min(stress_pts * 360, 359.9)
+    print(f"extent is: {extent}")
     x0, y0, x1, y1 = x - radius, y - radius, x + radius, y + radius
     t = thickness
-    canvas.create_oval(x0-t//2, y0-t//2, x1+t//2, y1+t//2, fill="#1a0000", outline="")
-    canvas.create_oval(x0+t//2, y0+t//2, x1-t//2, y1-t//2, fill="#111111", outline="")
+    canvas.create_arc(x0, y0, x1, y1, start=0, extent=359.9, style=tk.ARC, outline="#330005", width=t)
     if extent > 0:
-        canvas.create_arc(x0, y0, x1, y1, start=90, extent=-extent, fill="#e8001c", outline="", width = t)
+        canvas.create_arc(x0, y0, x1, y1, start=90, extent=-extent, style=tk.ARC, outline=color, width = t)
+    r = t / 2
+    cap_x1 = x
+    cap_y1 = y - radius
+    canvas.create_oval(cap_x1 - r, cap_y1 - r, cap_x1 + r, cap_y1 + r, fill=color, outline="")
     angle_rad = math.radians(90 - extent)
     dx = x + radius * math.cos(angle_rad)
-    dy = y + radius * math.sin(angle_rad)
-    r = t / 2
-    canvas.create_oval(dx - r, dy - r, dx + r, dy + r, fill="#e8001c", outline="")
+    dy = y - radius * math.sin(angle_rad)
+    canvas.create_oval(dx - r, dy - r, dx + r, dy + r, fill=color, outline="")
     canvas.create_text(x, y - 20, text=f"{stress_level.name}", fill="white", font=("Arial", 16, "bold"))
 
 
