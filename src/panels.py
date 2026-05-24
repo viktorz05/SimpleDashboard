@@ -5,49 +5,50 @@ from stress import get_stress_level
 from task import Task, Calendar
 from stress import QMetric
 from datetime import datetime
-
+BACKGROUND_COLOR = "#E8F8F5"
+BUTTON_COLOR = "#F8E8EB"
 class OverlayPanel(tk.Frame):
     def __init__(self, parent, title, on_close):
-        super().__init__(parent, bg = "#1a1a1a", highlightthickness=2, highlightbackground="red")
+        super().__init__(parent, bg = BACKGROUND_COLOR, highlightthickness=2, highlightbackground="red")
         tk.Label(self, background="red", text="Menu").pack(expand= True, fill=tk.BOTH)
-        header = tk.Frame(self, bg="#1a1a1a")
+        header = tk.Frame(self, bg=BACKGROUND_COLOR)
         header.pack(fill=tk.X, padx=12, pady=(12,0))
-        tk.Label(header, text=title, bg="#1a1a1a", fg="white").pack(side=tk.LEFT)
-        tk.Button(header, text="X", bg="#1a1a1a", fg="white", relief=tk.FLAT, cursor="hand2", command=on_close).pack(side=tk.RIGHT)
+        tk.Label(header, text=title, bg=BACKGROUND_COLOR, fg="black").pack(side=tk.LEFT)
+        tk.Button(header, text="X", bg=BUTTON_COLOR, fg="black", relief=tk.FLAT, cursor="hand2", command=on_close).pack(side=tk.RIGHT)
         ttk.Separator(self, orient=tk.HORIZONTAL).pack(fill=tk.X, padx=12, pady=8)
 
 class AddTaskPanel(OverlayPanel):
     def __init__(self, parent, on_close, on_add):
         super().__init__(parent, "Agregar Tarea", on_close)
         self.on_add = on_add
-        container = tk.Frame(self, bg="#1a1a1a")
+        container = tk.Frame(self, bg=BACKGROUND_COLOR)
         container.pack(fill=tk.BOTH, expand=True)
 
         #Text
-        tk.Label(container, text="Nombre", font=("Helvetica", 9, "bold"), bg="#1a1a1a", fg="#aaa"
+        tk.Label(container, text="Nombre", font=("Helvetica", 9, "bold"), bg=BACKGROUND_COLOR, fg="#aaa"
                  ).pack(anchor=tk.W, pady=(10,12))
         self.name_entry = self.make_entry(container, "Submit")
 
-        tk.Label(container, text="Fecha", font=("Helvetica", 9, "bold"), bg="#1a1a1a", fg="#aaa"
+        tk.Label(container, text="Fecha", font=("Helvetica", 9, "bold"), bg=BACKGROUND_COLOR, fg="#aaa"
                  ).pack(anchor=tk.W, pady=(10,12))
         self.date_entry = self.make_entry(container, "YYYY-MM-DD")
 
-        tk.Label(container, text="Tiempo estimado", font=("Helvetica", 9, "bold"), bg="#1a1a1a", fg="#aaa"
+        tk.Label(container, text="Tiempo estimado", font=("Helvetica", 9, "bold"), bg=BACKGROUND_COLOR, fg="#aaa"
                  ).pack(anchor=tk.W, pady=(10,12))
         self.time_entry = self.make_entry(container, "e.g. 1.5")
 
         metric_options = [m.name for m in QMetric]
-        tk.Label(container, text="Prioridad", font=("Helvetica", 9, "bold"), bg="#1a1a1a", fg="#aaa"
+        tk.Label(container, text="Prioridad", font=("Helvetica", 9, "bold"), bg=BACKGROUND_COLOR, fg="#aaa"
                  ).pack(anchor=tk.W, pady=(10,12))
         self.priority_var = tk.StringVar(value=metric_options[0])
         self.make_dropdown(container, self.priority_var, metric_options)
 
-        tk.Label(container, text="Dificultad", font=("Helvetica", 9, "bold"), bg="#1a1a1a", fg="#aaa"
+        tk.Label(container, text="Dificultad", font=("Helvetica", 9, "bold"), bg=BACKGROUND_COLOR, fg="#aaa"
                  ).pack(anchor=tk.W, pady=(10,12))
         self.difficulty_var = tk.StringVar(value=metric_options[0])
         self.make_dropdown(container, self.difficulty_var, metric_options)
 
-        tk.Button(container, text="Anadir tarea", font=("Helvetica", 10, "bold"), bg="#e8001c", fg="white",
+        tk.Button(container, text="Anadir tarea", font=("Helvetica", 10, "bold"), bg=BUTTON_COLOR, fg="black",
                   activeforeground="white", relief=tk.FLAT, cursor="hand2", pady=6, command=self._add).pack(fill=tk.X, padx=12, pady=12)
         
     
@@ -55,7 +56,7 @@ class AddTaskPanel(OverlayPanel):
         entry = tk.Entry(parent, font=("Helvetica", 10), bg="#222", fg="#555" ,insertbackground="white", relief='flat')
         entry.insert(0, placeholder)
         entry.bind("<FocusIn>", lambda e, en=entry, ph=placeholder : 
-                   (en.delete(0, tk.END), en.config(fg="white"))
+                   (en.delete(0, tk.END), en.config(fg="black"))
                    if en.get() == ph else None)
         entry.bind("<FocusOut>", lambda e, en=entry, ph=placeholder : 
                    (en.delete(0, ph), en.config(fg="#555"))
@@ -68,11 +69,11 @@ class AddTaskPanel(OverlayPanel):
     def make_dropdown(self, parent, variable, options):
         om = tk.OptionMenu(parent, variable, *options)
         om.config(
-            font=("Helvetica", 9, "bold"), bg ="#222", fg="white", activebackground="#e8001c", relief=tk.FLAT,
+            font=("Helvetica", 9, "bold"), bg ="#222", fg="black", activebackground="#e8001c", relief=tk.FLAT,
             highlightthickness=0
         
         )
-        om["menu"].config(bg="#222", fg="white", font=("Helvetica", 9))
+        om["menu"].config(bg="#222", fg="black", font=("Helvetica", 9))
         om.pack(fill=tk.X, padx=2)
 
         
@@ -116,23 +117,23 @@ class EvaluateStressPanel(OverlayPanel):
     SCALE = ["Nunca", "Casi Nunca", "A Veces", "Frecuentemente", "Muy Frecuentemente"]
     def __init__(self, parent, on_close, on_submit):
         super().__init__(parent, "Evaluar Estrés", on_close)
-        tk.Label(self, text="Evaluar Estrés", bg="red", fg="white").pack(pady=(18, 8))
+        tk.Label(self, text="Evaluar Estrés", bg="red", fg="black").pack(pady=(18, 8))
         self.on_submit = on_submit
         self.answers = []
-        container = tk.Frame(self, bg="#1a1a1a")
+        container = tk.Frame(self, bg=BACKGROUND_COLOR)
         container.pack(fill=tk.BOTH, expand=True)
 
         for i, question in enumerate(self.QUESTIONS):
             tk.Label(container, text=f"{i+1}., {question}", 
                      wraplength= 320, justify=tk.LEFT, 
-                     bg="#1a1a1a", fg="white").pack(anchor=tk.W, padx=10, pady=5)
-            var = tk.IntVar(value=0)
+                     bg=BACKGROUND_COLOR, fg="black").pack(anchor=tk.W, padx=10, pady=5)
+            var = tk.IntVar(value=i)
             self.answers.append(var)
-            btn_row = tk.Frame(container, bg="#1a1a1a")
+            btn_row = tk.Frame(container, bg=BACKGROUND_COLOR)
             btn_row.pack(anchor=tk.W, padx=20)
             for val, label in enumerate(self.SCALE):
                 tk.Radiobutton(btn_row, text=label, variable=var, 
-                               value=val, bg="#1a1a1a", fg="white", 
+                               value=val, bg=BUTTON_COLOR, fg="black", 
                                selectcolor="#333333").pack(side=tk.LEFT, padx=5)
         submit_btn = tk.Button(self, text="Calcular Estrés", command=self.calculate_stress)
         submit_btn.pack(pady=10)

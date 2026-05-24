@@ -7,9 +7,12 @@ from stress import QMetric, get_stress_level
 from task import Task, Calendar
 from panels import AddTaskPanel, EvaluateStressPanel, OverlayPanel
 from widgets import RecommendationsWidget, ComingTasksWidget
+from UI.RoundedButton import RoundedButton 
+from UI.RoundedFrame import RoundedFrame 
 
-MAX_STRESS_LEVEL = 21
-
+MAX_STRESS_LEVEL = 20
+BACKGROUND_COLOR = "#E8F8F5"
+BUTTON_COLOR = "#F8E8EB"
 
 class Dashboard(tk.Tk):
     def __init__(self):
@@ -18,9 +21,9 @@ class Dashboard(tk.Tk):
         self.title("MindCode")
         self.geometry("900x560")
         self.minsize(750,480)
-        self.configure(bg="#111")
+        self.configure(bg=BACKGROUND_COLOR)
         self.calendar = Calendar() 
-        self.stress_level = 14
+        self.stress_level = (0, QMetric.BAJO)
         self.build_ui()
 
 
@@ -32,26 +35,33 @@ class Dashboard(tk.Tk):
         self.tasks_widget = ComingTasksWidget(self, self.calendar)
         self.tasks_widget.grid(row=0, column=0, sticky="nsew")
 
-        # Ring
-        center = tk.Frame(self, bg="#1a1a1a")
+        # Column 1 Ring
+        center = tk.Frame(self, bg=BACKGROUND_COLOR)
         center.grid(row=0, column=1, sticky="nsew", padx=10, pady=10)
         center.rowconfigure(0, weight=1)
         center.columnconfigure(0, weight=1)
 
-        self.ring_canvas = tk.Canvas(center, bg="#111")
-        self.ring_canvas.grid(row=0, column=0, sticky="nsew")
-        self.ring_canvas.bind("<Configure>", lambda e: self.update_ring())
+        RING_SIZE = 200
+        ring_wrapper = tk.Frame(center, width=RING_SIZE, height=RING_SIZE, bg=BACKGROUND_COLOR)
+        ring_wrapper.grid(row=0, column=0)
+        ring_wrapper.grid_propagate(False)
+        ring_wrapper.pack_propagate(False)
+        self.ring_canvas = tk.Canvas(ring_wrapper, width=RING_SIZE, height=RING_SIZE, bg=BACKGROUND_COLOR, highlightthickness=0)
+        self.ring_canvas.pack(fill=tk.BOTH, expand=True)
+        self.ring_canvas.bind("<Configure>", self.update_ring)
         # Evaluate Stress Button
-        tk.Button(center, text="Evaluar Estrés", bg="#e8001c", fg="white", command= self.open_questionnaire).grid(row=1, column=0, pady=10)
+        # tk.Button(center, text="Evaluar Estrés", font=("Helvetica", 12, "bold"), bg=BUTTON_COLOR, fg="black", command= self.open_questionnaire).grid(row=1, column=0, pady=10)
+        RoundedButton(center, text="Evaluar Estrés", command=self.open_questionnaire, width =220, height = 40, bg=BUTTON_COLOR, fg="black").grid(row=1, column=0, pady=10)
 
         # Suggestions and add task button
-        right = tk.Frame(self, bg="#1a1a1a")
+        right = tk.Frame(self, bg=BACKGROUND_COLOR)
         right.grid(row=0, column=2, sticky="nsew")
         right.rowconfigure(0, weight=1)
         self.suggestions_widget = RecommendationsWidget(right)
         self.suggestions_widget.pack(fill=tk.BOTH, expand=True)
 
-        tk.Button(right, text="Agregar Tarea", bg="#e8001c", fg="white", command= self.open_add_task).pack(fill=tk.X, padx=12, pady=12)
+        # tk.Button(right, text="Agregar Tarea", font=("Helvetica", 12, "bold"),bg=BUTTON_COLOR, fg="black", command= self.open_add_task).pack(fill=tk.X, padx=12, pady=12)
+        RoundedButton(right, text="Agregar Tarea", command=self.open_add_task, width=220, height=40, bg=BUTTON_COLOR, fg="black").pack(fill=tk.X, padx=12, pady=12)
 
         self.overlay = None
 
@@ -91,35 +101,10 @@ class Dashboard(tk.Tk):
         if r > 20:
             draw_ring(canvas, cx, cy, r, self.stress_level)
 
-
-class CircularProgressBar(tk.Canvas):
-    def __init__(self, parent, x0, y0, x1, y1, width=2, start_ang=90, full_extent=360):
-        super().__init__(parent, width=x1-x0, height=y1-y0, bg="#111", highlightthickness=0)
-        self.x0, self.y0, self.x1, self.y1 = x0+width, y0+width, x1-width, y1-width
-        self.tx, self.ty = (x1-x0) // 2, (y1-y0) // 2
-        self.width = width
-        self.start_ang = start_ang
-        self.full_extent = full_extent
-        w2 = width // 2
-        self.oval1 = self.create_oval(self.x0-w2, self.y0-w2,
-                                      self.x1+w2, self.y1+w2)
-        self.oval2 = self.create_oval(self.x0+w2, self.y0+w2,
-                                      self.x1-w2, self.y1-w2)
-        self.running = False
-    
-    def start(self, interval=100):
-        pass
-
-def draw_ring(canvas, x, y, radius, stress_level, thickness=32):
-    stress_pts = stress_level.value / MAX_STRESS_LEVEL
-    color = "#000000"
-    match stress_level:
-        case QMetric.BAJO:
-            color = "#00ff00"
-        case QMetric.MEDIO:
-            color = "#ffff00"
-        case QMetric.ALTO:
-            color = "#ff0000"
+def draw_ring(canvas, x, y, radius, stress_level: tuple[int, QMetric], thickness=32):
+    score, stress_metric = stress_level
+    stress_pts = score / MAX_STRESS_LEVEL
+    color = stress_metric.color
     extent = min(stress_pts * 360, 359.9)
     print(f"extent is: {extent}")
     x0, y0, x1, y1 = x - radius, y - radius, x + radius, y + radius
@@ -135,7 +120,7 @@ def draw_ring(canvas, x, y, radius, stress_level, thickness=32):
     dx = x + radius * math.cos(angle_rad)
     dy = y - radius * math.sin(angle_rad)
     canvas.create_oval(dx - r, dy - r, dx + r, dy + r, fill=color, outline="")
-    canvas.create_text(x, y - 20, text=f"{stress_level.name}", fill="white", font=("Arial", 16, "bold"))
+    canvas.create_text(x, y - 20, text=f"{stress_metric.label}", fill="white", font=("Arial", 16, "bold"))
 
 
 

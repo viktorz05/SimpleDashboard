@@ -1,16 +1,19 @@
 from enum import Enum, auto
 
-
 class QMetric(Enum):
-    ALTO = 10
-    MEDIO = 5
-    BAJO = 0
+    ALTO = "ALTO", "#F54927"
+    MEDIO = "MEDIO", "#F5B027"
+    BAJO = "BAJO", "#27F5B0"
+    
+    def __init__(self, label, color):
+        self.label = label
+        self.color = color
 
-def get_stress_level(responses):
+def get_stress_level(responses) -> tuple[int, QMetric]:
     score = sum(responses)
-    if score < 6:
-        return QMetric.BAJO 
-    elif score < 14:
-        return QMetric.MEDIO
+    if score <= 6:
+        return score, QMetric.BAJO 
+    elif score <= 13:
+        return score, QMetric.MEDIO
     else:
-        return QMetric.ALTO
+        return score, QMetric.ALTO
