@@ -11,8 +11,10 @@ from UI.RoundedButton import RoundedButton
 from UI.RoundedFrame import RoundedFrame 
 
 MAX_STRESS_LEVEL = 20
-BACKGROUND_COLOR = "#E8F8F5"
-BUTTON_COLOR = "#F8E8EB"
+BACKGROUND_COLOR = "#0f0f0f"
+BUTTON_COLOR = "#e8001c"
+TEXT_COLOR = "#ffffff"
+SECONDARY_COLOR = "#1a1a1a"
 
 class Dashboard(tk.Tk):
     def __init__(self):
@@ -50,8 +52,7 @@ class Dashboard(tk.Tk):
         self.ring_canvas.pack(fill=tk.BOTH, expand=True)
         self.ring_canvas.bind("<Configure>", self.update_ring)
         # Evaluate Stress Button
-        # tk.Button(center, text="Evaluar Estrés", font=("Helvetica", 12, "bold"), bg=BUTTON_COLOR, fg="black", command= self.open_questionnaire).grid(row=1, column=0, pady=10)
-        RoundedButton(center, text="Evaluar Estrés", command=self.open_questionnaire, width =220, height = 40, bg=BUTTON_COLOR, fg="black").grid(row=1, column=0, pady=10)
+        RoundedButton(center, text="Evaluar Estrés", command=self.open_questionnaire, width=220, height=40, bg=BUTTON_COLOR, fg=TEXT_COLOR).grid(row=1, column=0, pady=10)
 
         # Suggestions and add task button
         right = tk.Frame(self, bg=BACKGROUND_COLOR)
@@ -60,8 +61,7 @@ class Dashboard(tk.Tk):
         self.suggestions_widget = RecommendationsWidget(right)
         self.suggestions_widget.pack(fill=tk.BOTH, expand=True)
 
-        # tk.Button(right, text="Agregar Tarea", font=("Helvetica", 12, "bold"),bg=BUTTON_COLOR, fg="black", command= self.open_add_task).pack(fill=tk.X, padx=12, pady=12)
-        RoundedButton(right, text="Agregar Tarea", command=self.open_add_task, width=220, height=40, bg=BUTTON_COLOR, fg="black").pack(fill=tk.X, padx=12, pady=12)
+        RoundedButton(right, text="Agregar Tarea", command=self.open_add_task, width=220, height=40, bg=BUTTON_COLOR, fg=TEXT_COLOR).pack(fill=tk.X, padx=12, pady=12)
 
         self.overlay = None
 
@@ -106,12 +106,11 @@ def draw_ring(canvas, x, y, radius, stress_level: tuple[int, QMetric], thickness
     stress_pts = score / MAX_STRESS_LEVEL
     color = stress_metric.color
     extent = min(stress_pts * 360, 359.9)
-    print(f"extent is: {extent}")
     x0, y0, x1, y1 = x - radius, y - radius, x + radius, y + radius
     t = thickness
-    canvas.create_arc(x0, y0, x1, y1, start=0, extent=359.9, style=tk.ARC, outline="#330005", width=t)
+    canvas.create_arc(x0, y0, x1, y1, start=0, extent=359.9, style=tk.ARC, outline="#2a2a2a", width=t)
     if extent > 0:
-        canvas.create_arc(x0, y0, x1, y1, start=90, extent=-extent, style=tk.ARC, outline=color, width = t)
+        canvas.create_arc(x0, y0, x1, y1, start=90, extent=-extent, style=tk.ARC, outline=color, width=t)
     r = t / 2
     cap_x1 = x
     cap_y1 = y - radius
@@ -120,7 +119,7 @@ def draw_ring(canvas, x, y, radius, stress_level: tuple[int, QMetric], thickness
     dx = x + radius * math.cos(angle_rad)
     dy = y - radius * math.sin(angle_rad)
     canvas.create_oval(dx - r, dy - r, dx + r, dy + r, fill=color, outline="")
-    canvas.create_text(x, y - 20, text=f"{stress_metric.label}", fill="white", font=("Arial", 16, "bold"))
+    canvas.create_text(x, y - 20, text=f"{stress_metric.label}", fill=TEXT_COLOR, font=("Helvetica", 16, "bold"))
 
 
 

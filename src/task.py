@@ -3,12 +3,20 @@ from itertools import combinations
 from stress import QMetric
 
 class Task:
-    def __init__(self, name :str, date : str, priority : QMetric, difficulty : QMetric, est_time : float):
+    def __init__(self, name :str, date : str, priority : QMetric, difficulty : QMetric, est_time : float, s_time : str | None, e_time : str | None):
         self.name = name
         self.date = datetime.strptime(date, "%Y-%m-%d").date()
         self.priority = priority
         self.difficulty = difficulty
         self.est_time = est_time
+        self.start_time = datetime.strptime(s_time, "%H:%M").time() if s_time else None
+        self.end_time =  datetime.strptime(e_time, "%H:%M").time() if e_time else None
+    
+    @property
+    def time_block(self) -> str:
+        if self.start_time and self.end_time:
+            return f"{self.start_time.strftime("%H:%M")}-{self.end_time.strftime("%H:%M")}"
+        return ""
 
 class Calendar:
     def __init__(self):
